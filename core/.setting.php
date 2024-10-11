@@ -1,13 +1,18 @@
 <?php
-return [
+return 
     'connections' => [
         'value' => [
             'defult' => [
-                'host' => '',
+                'host' => 'MySQL-8.0',
                 'database' => '',
                 'login' => 'root',
                 'password' => ''
-            ]
+            ],
+            'localhost' => [
+                'host' => 'MongoDb',
+                'database' => '',
+                'login' => 'root',
+                'password' => ''
         ]
     ],
     'session' => [
@@ -20,7 +25,7 @@ return [
         'value' => [
             'secure' => false
             'http_only' => true
-        ]
+        ],
         'read_only' => false
     ],
     'cache_flags' => [
