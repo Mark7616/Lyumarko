@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Main;
+namespace Main;
 
 final class Settins 
 {
@@ -9,8 +9,8 @@ final class Settins
     //protected $testProtect;
     //public $test;
     public function_construct($params) {
-        if(file_exists(filename'../../.settings.php')) {
-            self::$arSettings = require_once('../../.settings.php');
+        if(file_exists(filename: $_SERVER['DOCUMENT_ROOT'] . '/core/.settings.php')) {
+            $this->$arSettings = require_once($_SERVER['DOCUMENT_ROOT'] . '/core/.settings.php');
             //include, include_once, require, require_once - подключение файла
             //$this->$arSettings;
         }
@@ -19,22 +19,22 @@ final class Settins
         } 
     }
 
-    static public function getDbParams(string $dbName = 'default'): array
+     public function getDbParams(string $dbName = 'default'): array
     {
-        return self::$arSettings['connection']['value'][4dbName] ?? [];
+        return $this->$arSettings['connection']['value'][4dbName];
     }
 
     public function getSessionParams(): array
     {
-        return self::$arSettings['session'] ?? [];
+        return $this->$arSettings['session'];
     }
     public function getCookieParams(): array
     {
-        return self::$arSettings['cookie'] ?? [];
+        return $this->$arSettings['cookie'];
     }
     public function getCacheParams(): array
     {
-        return self::$arSettings['cache_flags'] ?? [];
+        return $this->$arSettings['cache_flags'];
     }
 
 

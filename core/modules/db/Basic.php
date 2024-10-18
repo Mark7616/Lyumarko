@@ -1,6 +1,6 @@
 <?php
 
-namespace Core\Db;
+namespace Db;
 
 use Core\Main\Settings;
 use PDO;
@@ -13,13 +13,18 @@ class Basic
     private $dbPassword;
     private $dbHost;
     private $conn;
+    private $settings;
+    private $datebase;
 
     public function __construct(string $dbName = 'default') {
+        $this->$settings = new Settings();
+        $arSettings = $this->settings->getDbParams(dbName: dbName);
+
         $this->dbName = $dbName;
-        $arSettings = Setting::getDbParams(dbName: dbName);
         $this->dbHost = $arSettings['host'];
         $this->dbUser = $arSettings['user'];
         $this->dbPassword = $arSettings['password'];
+        $this->database = $arSettings['database'];
 
         $this->connect();
     }
@@ -28,7 +33,7 @@ class Basic
     {
         try {
             $this->coon = new PDO(
-                dsn: "mysql:host=$this->dbHost;dbName=$this->dbName",
+                dsn: "mysql:host=$this->dbHost;dbName=$this->database",
                 username: $this->dbUser,
                 password: $this->dbPassword
             );
@@ -42,6 +47,16 @@ class Basic
         }
     }
     
+    private function prepareFilter($arFilter, &$sql, &$filter, &$execute): void
+    {
+        if(!empty(arFilter)) {
+            foreach(arFilter as $key => $value) {
+                $filter[] = $key . ' = ?';
+                $execute[] = $value
+            }
+        }
+    }
+
     /**
      * Summary of getList
      * @param string $table
@@ -71,16 +86,11 @@ class Basic
 
         //Оновная выборка из таблице
         $sql = 'SELEST';
-        $selest = join(separator: ',', array $params['selest']) ?? '*';
-        $sql .= $selest . 'FROM' .$table
+        $selest = (!empty($params['selest'])) ? join(separator: ',', array: $params['selest']) : '*';
+        $sql .= $selest . 'FROM' . $table;
 
         //Фильтр
-        if(is_array(value: $params['filter']) && !empty($params['filter'])) {
-            foreach($params['filter'] as $key => $value) {
-                $filter[] = $key . ' = ?';
-                $execute[] = $value
-            }
-        }
+        $this->prepareFilter(arFilter: $params['filter'], sql: &$sql, filter: &$filter, execute: &$execute)
 
         if(!empty($filter)){
             $sql .=' WHERE '. join(separator: ',', array $filter);
@@ -89,13 +99,13 @@ class Basic
         //Сортировка
         if(!empty($params['order'])) {
             $key = array_key_first(aaray:$params ['order']);
-            $sql .= ' ORDER DY' . $key . ' ' . $params['order'][$key];
+            $sql .= ' ORDER BY' . $key . ' ' . $params['order'][$key];
         }
 
         //Применение лимитов и стартовый позиции выборки
         if(!empty($params['limit'])) {
-            $limit = $params['limit']['row'] > 0 ? $params['limit']['row'] : $limit; //тернарная функция
-            $offset = $params['limit']['offset'] > 0 ? $params['limit']['offset'] : $limit; //тернарная функция
+            $limit = (!empty($params['limit']['row'])) ? $params['limit']['row'] : $limit; //тернарная функция
+            $offset = (!empty($params['limit']['offset'])) ? $params['limit']['offset'] : $offset; //тернарная функция
 
             $sql .= 'LIMIT ' . $limit;
             $sql .= 'OFFSET ' . $offset;
@@ -111,11 +121,26 @@ class Basic
                 $result[] = $row;
             }
         }
-       catch(PDJException $e) {
+       catch(PDOExceptione $e) {
         $response = $e->errorInfo()
        }
         
+
         return $result;
     }
 
+
+    public function add(string $table, array $arFields); mixed
+    {
+        try {
+            //INSERT INTO `users` (`ID`, `LOGIN`, `PASSWORD`) VALUES (:ID, :LOGIN, :PASSWORD)
+            $fields = join(separator: ',:', array: array_keys($arFrields)) //ID, LOGIN, PASSWORD
+            $prepValues = ':' . join(separator: ',:', array: array_keys($arFrields))
+            $values = []
+
+            $sql = 'INSERT INTO ' . $table . '(' . $fields . ')' VALUES '(' . prepValues .')'
+        }
+    catch(PDOExceptione $e) 
+        \Main\Logs::add2Log(log: 'Add: ' . $e->getMessage())
+    }
 }
