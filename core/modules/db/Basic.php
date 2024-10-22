@@ -61,17 +61,17 @@ class Basic
      * Summary of getList
      * @param string $table
      * @param array $params = [
-     *  'selest' => ['*', 'NAME', 'PASSWORD'], //имена полей которые мы будем выбирать
-     *  'filter' => ['GROUP' => 5, 'AGE' => 10],
-     *  'order' => ['SORT' => 'ACS'],
+     *  'select' => ['*', 'NAME', 'PASSWORD'], // имена полей которые мы будем выбирать
+     *  'filter' => ['GROUP' => 5, 'AGE' => 10], //фильтр ключ-значение
+     *  'order' => [ 'SORT' => 'ASC' ], //сортировка ASC - по возрастанию, DESC - по убыванию
+     *  'limit' => [
+     *      'offset' => 1, //Текущая позиция, с которой начинается выборка
+     *      'rows' => 5 //Количество элементов которые мы будем выбирать
+     *  ]
      * ]
      * 
      * 
-     * 
-     * 
-     * 
-     * 
-     * 
+     * @return array
      */
     public function getList(string $table, array $params = []): array {
         if(!$this->conn)
@@ -130,7 +130,7 @@ class Basic
     }
 
 
-    public function add(string $table, array $arFields); mixed
+    public function add(string $table, array $arFileds); mixed
     {
         try {
             //INSERT INTO `users` (`ID`, `LOGIN`, `PASSWORD`) VALUES (:ID, :LOGIN, :PASSWORD)
@@ -139,8 +139,52 @@ class Basic
             $values = []
 
             $sql = 'INSERT INTO ' . $table . '(' . $fields . ')' VALUES '(' . prepValues .')'
+            //INSERT INTO `users` (`ID`, `LOGIN`, `PASSWORD`) VALUES (:ID, :LOGIN, :PASSWORD)
+
+            $request = $this->conn->prepare($sql);
+
+            foreach($arFields as $key => $value) {
+                $request->bindValue(':' . $key, $value);
+            }
+
+            if($request->execute()) {
+                return $this->conn->lastInsertId('ID');
+            }
+            else {
+                \Main\Logs::add2Log('Add fail: ' . $e->getMessage());
+                return false;
+            }
         }
+        catch(PDOException $e) {
+            \Main\Logs::add2Log('Add: ' . $e->getMessage());
+        }
+    }
     catch(PDOExceptione $e) 
         \Main\Logs::add2Log(log: 'Add: ' . $e->getMessage())
-    }
+    
+        public function update(string $table, int $id, array $arFilders): bool {
+            try{
+                $filter
+                $execute
+                $arSql
+                //
+
+                $sql = 'UPDATE ' . $table . ' SET';
+                foreach( $arFilders as $key => $value) {
+                    $arSql[] = $key . ' = :' . $key; //LOGIN = :LOGIN
+                }
+
+                if(!empty($arSql)) {
+                    $sql .= join(separator: ',', array: $arSql);
+                }
+
+                $this->prepareFilter(arFilter: ['ID' => $id], sql: &$sql, filter: &$filter, execute: &$execute);
+
+                $request = $this->conn->prepare(query: $sql);
+
+                foreach($arFields as $key = $value ) {
+                    $request->bindValue(':' .$key, $value);
+                }
+            }
+        }
 }
